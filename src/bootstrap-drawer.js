@@ -14,7 +14,10 @@
     // ==============================
 
     var Drawer = function (element, options) {
+        this.$backdrop     = null;
+        this.$body         = $(document.body);
         this.$element      = $(element);
+        this.isShown       = null;
         this.options       = $.extend({}, Drawer.DEFAULTS, options);
         this.transitioning = null;
 
@@ -30,9 +33,12 @@
         toggle: true
     };
 
+    /* --- SHOW --- */
 
     Drawer.prototype.show = function () {
-        if (this.transitioning || this.$element.hasClass('in')) return;
+        var that = this;
+
+        if (this.transitioning || this.isShown) return;
 
         var startEvent = $.Event('show.bs.drawer');
         this.$element.trigger(startEvent);
@@ -47,19 +53,18 @@
             hasData || actives.data('bs.drawer', null);
         }
 
-        var dimension = this.dimension();
-
         this.$element
             .removeClass('drawer')
-            .addClass('collapsing')[dimension](0)
+            .addClass('collapsing').width(0)
             .attr('aria-expanded', true);
 
         this.transitioning = 1;
+        this.isShown = true;
 
         var complete = function () {
             this.$element
                 .removeClass('collapsing')
-                .addClass('drawer in')[dimension]('');
+                .addClass('drawer in').width('');
             this.transitioning = 0;
             this.$element
                 .trigger('shown.bs.drawer');
@@ -67,12 +72,24 @@
 
         if (!$.support.transition) return complete.call(this);
 
-        var scrollSize = $.camelCase(['scroll', dimension].join('-'));
-
         this.$element
             .one('bsTransitionEnd', $.proxy(complete, this))
-            .emulateTransitionEnd(Drawer.TRANSITION_DURATION)[dimension](this.$element[0][scrollSize])
+            .emulateTransitionEnd(Drawer.TRANSITION_DURATION);
+
+        this.backdrop(function () {
+            var transition = $.support.transition;
+
+            if (transition) {
+                that.$element[0].offsetWidth; // force reflow
+            }
+
+            that.$element
+                .addClass('in')
+                .attr('aria-hidden', false);
+        });
     };
+
+    /* --- HIDE --- */
 
     Drawer.prototype.hide = function () {
         if (this.transitioning || !this.$element.hasClass('in')) return;
@@ -81,16 +98,13 @@
         this.$element.trigger(startEvent);
         if (startEvent.isDefaultPrevented()) return;
 
-        var dimension = this.dimension();
-
-        this.$element[dimension](this.$element[dimension]())[0].offsetHeight;
-
         this.$element
             .addClass('collapsing')
             .removeClass('drawer in')
             .attr('aria-expanded', false);
 
         this.transitioning = 1;
+        this.isShown = false;
 
         var complete = function () {
             this.transitioning = 0;
@@ -102,14 +116,63 @@
 
         if (!$.support.transition) return complete.call(this);
 
-        this.$element
-            [dimension](0)
+        this.$element.width(0)
             .one('bsTransitionEnd', $.proxy(complete, this))
-            .emulateTransitionEnd(Drawer.TRANSITION_DURATION)
+            .emulateTransitionEnd(Drawer.TRANSITION_DURATION);
+
+        this.backdrop();
     };
+
+    /* --- TOGGLE --- */
 
     Drawer.prototype.toggle = function () {
         this[this.$element.hasClass('in') ? 'hide' : 'show']()
+    };
+
+    /* --- BACKDROP --- */
+
+    Drawer.prototype.backdrop = function (callback) {
+        var that = this;
+        var animate = 'fade';
+
+        if (this.isShown) {
+            var doAnimate = $.support.transition && animate;
+
+            this.$backdrop = $('<div class="modal-backdrop ' + animate + '" />')
+                .appendTo(this.$body);
+
+            this.$backdrop.on('click.dismiss.bs.drawer', $.proxy(that.hide, that));
+
+            if (doAnimate) this.$backdrop[0].offsetWidth; // force reflow
+
+            this.$backdrop.addClass('in');
+
+            if (!callback) return;
+
+            doAnimate ?
+                this.$backdrop
+                    .one('bsTransitionEnd', callback)
+                    .emulateTransitionEnd(Drawer.TRANSITION_DURATION) :
+                callback();
+
+        } else if (!this.isShown && this.$backdrop) {
+            this.$backdrop.removeClass('in');
+
+            var callbackRemove = function () {
+                that.$backdrop && that.$backdrop.remove();
+                that.$backdrop = null;
+                callback && callback();
+            };
+
+            $.support.transition ?
+                this.$backdrop
+                    .one('bsTransitionEnd', callbackRemove)
+                    .emulateTransitionEnd(Drawer.TRANSITION_DURATION) :
+                callbackRemove();
+
+        } else if (callback) {
+            callback();
+        }
     };
 
 
