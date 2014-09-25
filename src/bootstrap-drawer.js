@@ -27,7 +27,7 @@
 
     Drawer.VERSION  = 'proposed';
 
-    Drawer.TRANSITION_DURATION = 350;
+    Drawer.TRANSITION_DURATION = 200;
 
     Drawer.DEFAULTS = {
         toggle: true
@@ -77,11 +77,7 @@
             .emulateTransitionEnd(Drawer.TRANSITION_DURATION);
 
         this.backdrop(function () {
-            var transition = $.support.transition;
-
-            if (transition) {
-                that.$element[0].offsetWidth; // force reflow
-            }
+            if ($.support.transition) that.$element[0].offsetWidth; // force reflow
 
             that.$element
                 .addClass('in')
@@ -111,7 +107,7 @@
             this.$element
                 .removeClass('collapsing')
                 .addClass('drawer')
-                .trigger('hidden.bs.drawer')
+                .trigger('hidden.bs.drawer');
         };
 
         if (!$.support.transition) return complete.call(this);
@@ -126,7 +122,7 @@
     /* --- TOGGLE --- */
 
     Drawer.prototype.toggle = function () {
-        this[this.$element.hasClass('in') ? 'hide' : 'show']()
+        this[this.$element.hasClass('in') ? 'hide' : 'show']();
     };
 
     /* --- BACKDROP --- */
@@ -188,7 +184,7 @@
             if (!data && options.toggle && option == 'show') options.toggle = false;
             if (!data) $this.data('bs.drawer', (data = new Drawer(this, options)));
             if (typeof option == 'string') data[option]();
-        })
+        });
     }
 
     var old = $.fn.drawer;
@@ -212,9 +208,7 @@
     $(document).on('click.bs.drawer.data-api', '[data-toggle="drawer"]', function (e) {
         var href;
         var $this   = $(this);
-        var target  = $this.attr('data-target')
-            || e.preventDefault()
-            || (href = $this.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, ''); // strip for ie7
+        var target  = $this.attr('data-target') || e.preventDefault() || (href = $this.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, ''); // strip for ie7
         var $target = $(target);
         var data    = $target.data('bs.drawer');
         var option  = data ? 'toggle' : $this.data();
