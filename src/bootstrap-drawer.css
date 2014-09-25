@@ -18,7 +18,7 @@
     left: 0;
     min-height: 100%;
     position: fixed;
-    top: 0;
+    /*top: 0;*/
     transform: translateX(-240px);
     transform-style: preserve-3d;
     transition-duration: 0.2s;
