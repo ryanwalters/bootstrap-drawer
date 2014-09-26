@@ -1,3 +1,7 @@
+.drawer-open {
+    overflow-y: hidden;
+}
+
 .drawer .navbar-toggle {
     border: none;
     float: left;

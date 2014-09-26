@@ -36,13 +36,15 @@
     /* --- SHOW --- */
 
     Drawer.prototype.show = function () {
-        var that = this;
-
         if (this.transitioning || this.isShown) return;
+
+        var that = this;
 
         var startEvent = $.Event('show.bs.drawer');
         this.$element.trigger(startEvent);
         if (startEvent.isDefaultPrevented()) return;
+
+        this.$body.addClass('drawer-open');
 
         var actives = this.$parent && this.$parent.find('> .panel').children('.in, .collapsing');
 
@@ -93,6 +95,8 @@
         var startEvent = $.Event('hide.bs.drawer');
         this.$element.trigger(startEvent);
         if (startEvent.isDefaultPrevented()) return;
+
+        this.$body.removeClass('drawer-open');
 
         this.$element
             .addClass('collapsing')

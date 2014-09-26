@@ -19,7 +19,7 @@ module.exports = function (grunt) {
             }
         },
         watch: {
-            files: ['src/bootstrap-drawer.js'],
+            files: ['src/bootstrap-drawer.js', 'src/bootstrap-drawer.css'],
             tasks: ['uglify', 'cssmin']
         },
         jshint: {
